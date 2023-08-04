@@ -27,7 +27,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const usersCollection = client.db('throughTravelsDb').collection('users')
-    const roomsCollection = client.db('throughTravelsDb').collection('places')
+    const placesCollection = client.db('throughTravelsDb').collection('places')
     const bookingsCollection = client.db('throughTravelsDb').collection('bookings')
 
     // Svae user email & Role to database
@@ -44,6 +44,12 @@ async function run() {
       res.send(result)
     })
 
+    // save a place to database
+    app.post('/places', async(req, res) => {
+      const place = req.body
+      const result = await placesCollection.insertOne(place)
+      res.send(result)
+    })
 
 
     // Send a ping to confirm a successful connection
