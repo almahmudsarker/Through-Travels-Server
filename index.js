@@ -65,6 +65,38 @@ async function run() {
       const result = await placesCollection.insertOne(place)
       res.send(result)
     })
+   
+    //update place booking status
+    app.patch('/places/status/:id', async (req, res) => {
+      const id = req.params.id
+      const status = req.body.status
+      const query = { _id: new ObjectId(id) }
+      const updateDoc = {
+        $set: { 
+          booked: status,
+         },
+      }
+      const update = await placesCollection.updateOne(query, updateDoc)
+      res.send(update)
+    })
+
+    // Get bookings for guest
+    app.get('/bookings', async (req, res) => {
+      const email = req.query.email
+      if(!email){
+        res.send([])
+      }
+      const query = {'guest.email': email}
+      const result = await bookingsCollection.find(query).toArray()
+      res.send(result)
+    })
+
+    // save a bookings to database
+    app.post('/bookings', async(req, res) => {
+      const booking = req.body
+      const result = await bookingsCollection.insertOne(booking)
+      res.send(result)
+    })
 
     // get user
     app.get('/users/:email', async(req, res) => {
