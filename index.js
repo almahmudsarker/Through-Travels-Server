@@ -44,6 +44,21 @@ async function run() {
       res.send(result)
     })
 
+    // Get all places
+    app.get('/places', async(req, res) => {
+      const cursor = await placesCollection.find({})
+      const places = await cursor.toArray()
+      res.send(places)
+    })
+
+    // Get a single place by id
+    app.get('/place/:id', async(req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const place = await placesCollection.findOne(query)
+      res.send(place)
+    })
+
     // save a place to database
     app.post('/places', async(req, res) => {
       const place = req.body
@@ -51,6 +66,13 @@ async function run() {
       res.send(result)
     })
 
+    // get user
+    app.get('/users/:email', async(req, res) => {
+      const email = req.params.email
+      const query = { email: email }
+      const user = await usersCollection.findOne(query)
+      res.send(user)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
