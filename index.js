@@ -98,6 +98,14 @@ async function run() {
       res.send(result)
     })
 
+    //delete a booking
+    app.delete('/bookings/:id', async(req, res) => {
+      const id = req.params.id
+      const query = { _id: new ObjectId(id) }
+      const result = await bookingsCollection.deleteOne(query)
+      res.send(result)
+    })
+
     // get user
     app.get('/users/:email', async(req, res) => {
       const email = req.params.email
