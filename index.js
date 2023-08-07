@@ -108,6 +108,17 @@ async function run() {
       res.send(result)
     })
 
+    // Get bookings for host
+    app.get('/bookings/host', async (req, res) => {
+      const email = req.query.email
+      if(!email){
+        res.send([])
+      }
+      const query = { host: email }
+      const result = await bookingsCollection.find(query).toArray()
+      res.send(result)
+    })
+
     // save a bookings to database
     app.post('/bookings', async(req, res) => {
       const booking = req.body
