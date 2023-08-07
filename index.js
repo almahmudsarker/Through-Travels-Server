@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+const morgan = require('morgan')
 const cors = require('cors')
 require('dotenv').config()
 const port = process.env.PORT || 5000
@@ -12,6 +13,7 @@ const corsOptions = {
 }
 app.use(cors(corsOptions))
 app.use(express.json())
+app.use(morgan('dev'))
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.mv9nczj.mongodb.net/?retryWrites=true&w=majority`;
@@ -40,7 +42,6 @@ async function run() {
         $set: user,
       }
       const result = await usersCollection.updateOne(query, updateDoc, options)
-      console.log('updating user with id: ', result);
       res.send(result)
     })
 
