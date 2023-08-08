@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const port = process.env.PORT || 5000
 
@@ -26,11 +27,40 @@ const client = new MongoClient(uri, {
   },
 })
 
+// Validate jwt 
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "Unauthorized Access" }) 
+  }
+  const token = authorization.split(' ')[1]
+  // token verify
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if(err){
+      return res.status(401).send({error: true, message: 'Unauthorized Access'})
+    }
+    req.decoded = decoded
+    next()
+  })
+}
+
 async function run() {
   try {
     const usersCollection = client.db('throughTravelsDb').collection('users')
     const placesCollection = client.db('throughTravelsDb').collection('places')
     const bookingsCollection = client.db('throughTravelsDb').collection('bookings')
+
+
+    // Generate jwt token
+    app.post('/jwt', async ( req, res )=> {
+      const email = req.body
+      const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "7d",
+      })
+      res.send({token})
+    })
 
     // Svae user email & Role to database
     app.put('/users/:email', async(req, res) => {
@@ -47,9 +77,8 @@ async function run() {
 
     // Get all places
     app.get('/places', async(req, res) => {
-      const cursor = await placesCollection.find({})
-      const places = await cursor.toArray()
-      res.send(places)
+      const result = await placesCollection.find().toArray()
+      res.send(result)
     })
 
     //Delete place
@@ -60,9 +89,15 @@ async function run() {
       res.send(result)
     })
 
-    // Get a single place for host by email
-    app.get('/places/:email', async(req, res) => {
+    // Get all places for host by email
+    app.get('/places/:email', verifyJWT, async(req, res) => {
+      const decodedEmail = req.decoded.email
       const email = req.params.email
+      if(email !== decodedEmail){
+        return res
+          .status(403)
+          .send({ error: true, message: "Forbidden Access" })
+      }
       const query = { 'host.email': email }
       const place = await placesCollection.find(query).toArray()
       res.send(place)
